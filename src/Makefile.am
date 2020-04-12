@@ -175,6 +175,10 @@ atari800_SOURCES += \
 atari800_SOURCES += pbi_proto80.c pbi_proto80.h af80.c af80.h bit3.c bit3.h
 endif
 
+if WITH_VIDEO_SDL2
+atari800_SOURCES += sdl2/main.c
+endif
+
 if WITH_VIDEO_DOSVGA
 atari800_SOURCES += dos/atari_vga.c dos/vga_gfx.c dos/vga_gfx.h dos/vga_asm.s dos/dos_ints.h
 endif

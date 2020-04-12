@@ -226,6 +226,39 @@ dnl Don't make this a windowed app, make it a console app.
     fi
 ])
 
+a8_use_sdl2=no
+dnl Check if SDL2 library exists. If it's found, set a8_use_sdl2 to yes and AC_DEFINE the SDL2 symbol.
+dnl If called multiple times, it will check for the library only once.
+dnl Usage: TRY_USE_SDL2()
+AC_DEFUN([TRY_USE_SDL2],
+[
+    if [[ "$a8_use_sdl2" = no ]]; then
+        dnl Check for SDL2
+        SDL2_VERSION=2.2.0
+        AM_PATH_SDL2($SDL2_VERSION,
+        [
+            AC_DEFINE(SDL2,1,[Target: SDL2 library.])
+            AC_DEFINE(SUPPORTS_PLATFORM_TIME,1,[Platform-specific time function.])
+            LIBS="$LIBS $SDL2_LIBS"
+            LIBS="$LIBS $SDL_LIBS"
+            CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+            if [[ "$a8_host" = "win" ]]; then
+dnl Don't redefine main -- SDL.h will do it for us in atari_sdl.c Otherwise
+dnl the autoconf tests don't work.
+                CPPFLAGS=${CPPFLAGS/-Dmain=SDL_main/}
+dnl Avoid making stdout.txt on Windows sdl target by compiling our own SDL_main
+dnl Get SDL_win32_main.c from the SDL source and copy it to the src directory.
+                LIBS=${LIBS/-lSDLmain/}
+                CPPFLAGS="$CPPFLAGS -DNO_STDIO_REDIRECT"
+dnl Don't make this a windowed app, make it a console app.
+                LIBS=${LIBS/-mwindows/}
+            fi
+            a8_use_sdl2=yes
+        ])
+    fi
+])
+
+
 dnl Check if host os Java NestedVM...
 if [[ "$a8_target" != "android" ]]; then
     dnl Android target cannot perform link tests
@@ -563,10 +596,10 @@ fi
 dnl Select/detect video interface.
 
 AC_ARG_WITH([video],
-    [AC_HELP_STRING([--with-video@<:@=no|yes|curses|ncurses|pdcurses|dosvga|sdl|javanvm@:>@],[Select video interface to use @<:@default=check@:>@])],
+    [AC_HELP_STRING([--with-video@<:@=no|yes|curses|ncurses|pdcurses|dosvga|sdl|sdl2|javanvm@:>@],[Select video interface to use @<:@default=check@:>@])],
     [
         case "$withval" in
-            no | yes | check | curses | ncurses | pdcurses | dosvga | sdl | javanvm)
+            no | yes | check | curses | ncurses | pdcurses | dosvga | sdl | sdl2 | javanvm)
                 ;;
             *)
                 AC_MSG_ERROR([unrecognized value for --with-video: "$withval"])
@@ -597,6 +630,14 @@ if [[ "$a8_target" = default ]]; then
                 with_video=sdl
             elif [[ "$with_video" = sdl ]]; then
                 AC_MSG_FAILURE([--with-video=sdl was given, but SDL library not found!])
+            fi
+        fi
+        if [[ "$with_video" = check -o "$with_video" = yes -o "$with_video" = sdl2 ]]; then
+            TRY_USE_SDL2()
+            if [[ "$a8_use_sdl2" = yes ]]; then
+                with_video=sdl2
+            elif [[ "$with_video" = sdl2 ]]; then
+                AC_MSG_FAILURE([--with-video=sdl2 was given, but SDL2 library not found!])
             fi
         fi
         if [[ "$with_video" = check -o "$with_video" = yes -o "$with_video" = curses ]]; then
@@ -654,6 +695,10 @@ if [[ "$a8_target" = default ]]; then
             AC_DEFINE(AF80,1,[The Austin Franklin 80 column card.])
             AC_DEFINE(BIT3,1,[The Bit3 Full View 80 column card.])
             ;;
+        sdl2)
+            AC_DEFINE(GUI_SDL2,1,[Use SDL for graphics and input.])
+            WANT_EVENT_RECORDING=no
+            ;;
         dosvga)
             AC_DEFINE(DOSVGA,1,[Target: DOS VGA.])
             AC_DEFINE(SUPPORTS_PLATFORM_CONFIGURE,1,[Additional config file options.])
@@ -674,6 +719,7 @@ if [[ "$a8_target" = default ]]; then
 fi
 AM_CONDITIONAL(WITH_VIDEO_JAVANVM, test "$with_video" = javanvm)
 AM_CONDITIONAL(WITH_VIDEO_SDL, test "$with_video" = sdl)
+AM_CONDITIONAL(WITH_VIDEO_SDL2, test "$with_video" = sdl2)
 AM_CONDITIONAL(WITH_VIDEO_DOSVGA, test "$with_video" = dosvga)
 AM_CONDITIONAL(WITH_VIDEO_CURSES, test "$with_video" = curses -o "$with_video" = ncurses -o "$with_video" = pdcurses)
 AM_CONDITIONAL(WITH_VIDEO_LIBATARI800, test "$a8_target" = libatari800)
@@ -851,10 +897,10 @@ AM_CONDITIONAL([WANT_PBI_BB], test "$WANT_PBI_BB" = "yes")
 dnl Select/detect sound interface.
 
 AC_ARG_WITH([sound],
-    [AC_HELP_STRING([--with-sound@<:@=no|yes|dossb|oss|falcon|win|sdl|javanvm@:>@],[Select sound interface to use @<:@default=check@:>@])],
+    [AC_HELP_STRING([--with-sound@<:@=no|yes|dossb|oss|falcon|win|sdl|sdl2|javanvm@:>@],[Select sound interface to use @<:@default=check@:>@])],
     [
         case "$withval" in
-            no | yes | check | dossb | oss | falcon | win | sdl | javanvm)
+            no | yes | check | dossb | oss | falcon | win | sdl | sdl2 | javanvm)
                 ;;
             *)
                 AC_MSG_ERROR([unrecognized value for --with-sound: "$withval"])
@@ -911,6 +957,14 @@ elif [[ "$a8_target" != "ps2" -a "$a8_target" != "android" ]]; then
                 AC_MSG_FAILURE([--with-sound=sdl was given, but SDL library not found!])
             fi
         fi
+        if [[ "$with_sound" = "$with_sound" = sdl2 ]]; then
+            TRY_USE_SDL2()
+            if [[ "$a8_use_sdl2" = yes ]]; then
+                with_sound=sdl2
+            elif [[ "$with_sound" = sdl2 ]]; then
+                AC_MSG_FAILURE([--with-sound=sdl2 was given, but SDL library not found!])
+            fi
+        fi
         if [[ "$with_sound" = check -o "$with_sound" = yes -o "$with_sound" = oss ]]; then
             if [[ "$SUPPORTS_SOUND_OSS" = yes ]]; then
                 with_sound=oss
@@ -927,6 +981,10 @@ elif [[ "$a8_target" != "ps2" -a "$a8_target" != "android" ]]; then
             WANT_SOUND_THIN_API=yes
             ;;
         sdl)
+            WANT_SOUND_THIN_API=yes
+            WANT_SOUND_CALLBACK=yes
+            ;;
+        sdl2)
             WANT_SOUND_THIN_API=yes
             WANT_SOUND_CALLBACK=yes
             ;;
@@ -956,10 +1014,13 @@ AM_CONDITIONAL([WITH_SOUND_JAVANVM], test "$with_sound" = javanvm)
 AM_CONDITIONAL([WITH_SOUND_FALCON], test "$with_sound" = falcon)
 AM_CONDITIONAL([WITH_SOUND_OSS], test "$with_sound" = oss)
 AM_CONDITIONAL([WITH_SOUND_SDL], test "$with_sound" = sdl)
+AM_CONDITIONAL([WITH_SOUND_SDL2], test "$with_sound" = sdl2)
 AM_CONDITIONAL([WITH_SOUND_WIN], test "$with_sound" = win)
 AM_CONDITIONAL([WITH_SOUND_DOSSB], test "$with_sound" = dossb)
 AM_CONDITIONAL([WITH_SOUND_LIBATARI800], test "$with_sound" = libatari800)
 AM_CONDITIONAL([A8_USE_SDL], test "$a8_use_sdl" = yes)
+AM_CONDITIONAL([A8_USE_SDL2], test "$a8_use_sdl2" = yes)
+
 
 dnl Set sound support options...
 
@@ -1076,6 +1137,13 @@ if [[ "$a8_use_sdl" = yes ]]; then
               USE_UI_BASIC_ONSCREEN_KEYBOARD,[Define to enable on-screen keyboard.]
              )
 fi
+if [[ "$a8_use_sdl2" = yes ]]; then
+    A8_OPTION(onscreenkeyboard,no,
+              [Enable on-screen keyboard (default=OFF)],
+              USE_UI_BASIC_ONSCREEN_KEYBOARD,[Define to enable on-screen keyboard.]
+             )
+fi
+
 
 dnl Select/detect features based on external software...
 
@@ -1319,6 +1387,11 @@ if [[ "$a8_target" = default -a "$with_video" = sdl ]]; then
     echo "Using on-screen keyboard?.............: $WANT_USE_UI_BASIC_ONSCREEN_KEYBOARD"
     echo "Using OpenGL?.........................: $with_opengl"
 fi
+if [[ "$a8_target" = default -a "$with_video" = sdl2 ]]; then
+    echo "Using on-screen keyboard?.............: $WANT_USE_UI_BASIC_ONSCREEN_KEYBOARD"
+    echo "Using OpenGL?.........................: $with_opengl"
+fi
+echo
 echo
 echo "Main build variables:"
 echo "    CC......: \"$CC\""
