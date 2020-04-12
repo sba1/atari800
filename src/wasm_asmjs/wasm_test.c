@@ -3,70 +3,26 @@
 #include <emscripten.h>
 
 #include "../libatari800/libatari800.h"
+#include "../colours.h"
 
-const int PIXEL_WIDTH = 2;
-const int PIXEL_HEIGHT = 2;
+const int GRAPHICS_WIDTH = 336;
 const int GRAPHICS_HEIGHT = 192;
-const int GRAPHICS_WIDTH = 320;
 
-const int CANVAS_WIDTH = PIXEL_WIDTH * GRAPHICS_WIDTH;
-const int CANVAS_HEIGHT = PIXEL_HEIGHT * GRAPHICS_HEIGHT;
-const int BYTES_PER_PIXEL = 4;
+const int CANVAS_WIDTH = GRAPHICS_WIDTH;
+const int CANVAS_HEIGHT = GRAPHICS_HEIGHT;
 
 SDL_Window *window;
 SDL_Renderer *renderer;
-
-void z()
-{
-	SDL_RenderClear(renderer);
-
-	SDL_Rect rect;
-	rect.x = 20;
-	rect.y = 20;
-	rect.w = 200;
-	rect.h = 200;
-
-	SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
-	SDL_RenderDrawRect(renderer, &rect);
-
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
-	SDL_RenderPresent(renderer);
-}
-
-void drawLines()
-{
-	static int r = 255, g = 0, b = 0;
-	r += 10;
-	g += 27;
-	b += 1;
-
-	r = r % 255;
-	g = g % 255;
-	b = b % 255;
-
-	SDL_Surface *surface = SDL_CreateRGBSurface(0, CANVAS_WIDTH, CANVAS_HEIGHT, 32, 0, 0, 0, 0);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderClear(renderer);
-
-	SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
-	SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
-	SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
-	SDL_RenderPresent(renderer);
-	SDL_FreeSurface(surface);
-}
 
 void mainloop()
 {
 	static int frame = 0;
 	static int idx = 0;
+	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
 	char msg[] = "The quick brown fox jumped over those lazy dogs who did nothing but sleep all day.";
 
 	frame++;
-
-	SDL_Rect rect;
 
 	input_template_t input;
 
@@ -81,38 +37,45 @@ void mainloop()
 	}
 	libatari800_next_frame(&input);
 
-	if (frame % 60 != 0)
-	{
-		return;
-	}
+	SDL_Texture *texture = SDL_CreateTexture(
+		renderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		GRAPHICS_WIDTH, GRAPHICS_HEIGHT);
+
 
 	/* print out portion of screen, assuming graphics 0 display list */
 	unsigned char *screen = libatari800_get_screen_ptr();
 	int x, y;
 
 	screen += 384 * 24 + 24;
-	for (y = 0; y < 192; y++)
+	for (y = 0; y < GRAPHICS_HEIGHT; y++)
 	{
-		for (x = 0; x < 320; x++)
+		for (x = 0; x < GRAPHICS_WIDTH; x++)
 		{
 			unsigned char c = screen[x];
-			if (c == 0)
-				SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-			else if (c == 0x94)
-				SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-			else if (c == 0x9a)
-				SDL_SetRenderDrawColor(renderer, 127, 127, 127, SDL_ALPHA_OPAQUE);
-			else
-				SDL_SetRenderDrawColor(renderer, 127, 255, 127, SDL_ALPHA_OPAQUE);
 
-			rect.x = x * PIXEL_WIDTH;
-			rect.y = y * PIXEL_HEIGHT;
-			rect.w = PIXEL_WIDTH;
-			rect.h = PIXEL_HEIGHT;
-			SDL_RenderFillRect(renderer, &rect);
+			unsigned char r = Colours_GetR(c);
+			unsigned char b = Colours_GetB(c);
+			unsigned char g = Colours_GetG(c);
+
+			const unsigned int offset = (GRAPHICS_WIDTH * 4 * y) + x * 4;
+			pixels[offset + 0] = b;				   // b
+			pixels[offset + 1] = g;				   // g
+			pixels[offset + 2] = r;				   // r
+			pixels[offset + 3] = SDL_ALPHA_OPAQUE; // a
+
 		}
 		screen += 384;
 	}
+
+	SDL_UpdateTexture(
+		texture,
+		NULL,
+		&pixels[0],
+		GRAPHICS_WIDTH * 4);
+
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
 
 	SDL_RenderPresent(renderer);
 }

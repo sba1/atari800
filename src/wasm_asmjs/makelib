@@ -18,8 +18,9 @@ emcc \
 	-s NO_EXIT_RUNTIME=1 \
 	-s EXPORTED_FUNCTIONS="['_main', '_mainloop']" \
 	-s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'cwrap']" \
-    --pre-js libatari800.js \
-    wasm_test.c libatari800.a -o build/index.html
+	-s ALLOW_MEMORY_GROWTH=1 \
+	--pre-js libatari800.js \
+	wasm_test.c libatari800.a -o build/index.html
 	
     #--preload-file asm/bios.rom@/bios.rom \
 cd build && http-server
