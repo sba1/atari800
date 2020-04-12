@@ -1,0 +1,25 @@
+#!/bin/bash
+
+pushd ../..
+
+#./autogen.sh
+#emconfigure ./configure --target=libatari800
+#emmake make
+popd
+
+rm -rf build
+mkdir -p build
+cp index.html build    
+
+cp ../libatari800.a .
+emcc \
+    -s USE_SDL=2  \
+	-s INVOKE_RUN=1 \
+	-s NO_EXIT_RUNTIME=1 \
+	-s EXPORTED_FUNCTIONS="['_main', '_mainloop']" \
+	-s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'cwrap']" \
+    --pre-js libatari800.js \
+    wasm_test.c libatari800.a -o build/index.html
+	
+    #--preload-file asm/bios.rom@/bios.rom \
+cd build && http-server
