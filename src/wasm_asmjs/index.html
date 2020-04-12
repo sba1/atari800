@@ -741,27 +741,6 @@
     var progressElement = document.getElementById('progress');
     var spinnerElement = document.getElementById('spinner');
 
-
-const mainloop = Module.cwrap('mainloop', null, ['void']);
-
-    var prerun = () => {
-      alert("pre-run");
-    }
-
-
-    var postrun = () => {
-      function loop() {
-        requestAnimationFrame(function() {
-          console.log("Looping...");
-         // mainloop();
-          // loop();
-        });
-      }
-      alert("postrun");
-    }
-
-
-
     var Module = {
       preRun: [],
       postRun: [],
