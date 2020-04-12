@@ -20,7 +20,7 @@ void mainloop()
 	static int idx = 0;
 	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
-	char msg[] = "The quick brown fox jumped over those lazy dogs who did nothing but sleep all day.";
+	char msg[] = "The quick brown fox jumped over those lazy dogs who did nothing but sleep all day. 1234567890-=!@#$^&*()_+";
 
 	frame++;
 
@@ -145,6 +145,7 @@ int main(int argc, char **argv)
 	char *test_args[] = {
 		"atari800",
 		"-atari",
+		"-basic",
 	};
 	libatari800_init(sizeof(test_args) / sizeof(test_args[0]), test_args);
 

@@ -9,7 +9,6 @@ popd
 
 rm -rf build
 mkdir -p build
-cp index.html build    
 
 cp ../libatari800.a .
 emcc \
