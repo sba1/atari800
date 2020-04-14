@@ -9,6 +9,11 @@
 #define UWORD unsigned short
 #endif
 
+#ifndef WORD
+#define WORD short
+#endif
+
+
 #ifndef ULONG
 #include <stdint.h>
 #define ULONG uint32_t
@@ -22,8 +27,8 @@
 #endif
 
 typedef struct {
-    UBYTE keychar;
-    UBYTE keycode;
+    WORD keychar;
+    WORD keycode;
     UBYTE special;
     UBYTE shift;
     UBYTE control;

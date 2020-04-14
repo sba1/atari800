@@ -27,6 +27,8 @@
 #include "config.h"
 #include <string.h>
 
+#include "screen.h"
+#include "colours.h"
 #include "antic.h" /* ypos */
 #include "atari.h"
 #include "binload.h"
@@ -37,6 +39,16 @@
 #include "monitor.h"
 #include "platform.h"
 #include "ui.h" /* UI_alt_function */
+#include "videomode.h"
+
+#define GRAPHICS_WIDTH 336
+#define GRAPHICS_HEIGHT 192
+
+#define CANVAS_WIDTH GRAPHICS_WIDTH
+#define CANVAS_HEIGHT GRAPHICS_HEIGHT
+
+SDL_Window *window;
+SDL_Renderer *renderer;
 
 #ifdef SOUND
 #include "../sound.h"
@@ -49,6 +61,30 @@ double PLATFORM_Time(void)
 
 int PLATFORM_Initialise(int *argc, char *argv[])
 {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	{
+		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		return FALSE;
+	}
+
+	window = SDL_CreateWindow("SDL_ttf in SDL2",
+							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+							  CANVAS_WIDTH, CANVAS_HEIGHT,
+							  0);
+	renderer = SDL_CreateRenderer(window, -1, 0);
+
+	if (window == NULL)
+	{
+		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		return FALSE;
+	}
+
+	if (renderer == NULL)
+	{
+		printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -59,6 +95,50 @@ int PLATFORM_Exit(int run_monitor)
 
 void PLATFORM_DisplayScreen(void)
 {
+	UBYTE pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
+
+	SDL_Texture *texture = SDL_CreateTexture(
+		renderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		GRAPHICS_WIDTH, GRAPHICS_HEIGHT);
+
+	int VIDEOMODE_src_offset_left = 0;
+	int VIDEOMODE_src_offset_top = 0;
+
+	UBYTE *screen = (UBYTE *)Screen_atari + Screen_WIDTH * VIDEOMODE_src_offset_top + VIDEOMODE_src_offset_left;
+
+	int x, y;
+
+	screen += 384 * 24 + 24;
+	for (y = 0; y < GRAPHICS_HEIGHT; y++)
+	{
+		for (x = 0; x < GRAPHICS_WIDTH; x++)
+		{
+			UBYTE c = screen[x];
+
+			UBYTE r = Colours_GetR(c);
+			UBYTE b = Colours_GetB(c);
+			UBYTE g = Colours_GetG(c);
+
+			const unsigned int offset = (GRAPHICS_WIDTH * 4 * y) + x * 4;
+			pixels[offset + 0] = b;
+			pixels[offset + 1] = g;
+			pixels[offset + 2] = r;
+			pixels[offset + 3] = SDL_ALPHA_OPAQUE;
+		}
+		screen += 384;
+	}
+
+	SDL_UpdateTexture(
+		texture,
+		NULL,
+		&pixels[0],
+		GRAPHICS_WIDTH * 4);
+
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+
+	SDL_RenderPresent(renderer);
 }
 
 int PLATFORM_Keyboard(void)

@@ -2,9 +2,9 @@
 
 pushd ../..
 
-#./autogen.sh
-#emconfigure ./configure --target=libatari800
-#emmake make
+./autogen.sh
+emconfigure ./configure --target=libatari800
+emmake make
 popd
 
 rm -rf build
@@ -12,14 +12,18 @@ mkdir -p build
 
 cp ../libatari800.a .
 emcc \
-    -s USE_SDL=2  \
+	-s WASM=1 \
+	-s USE_SDL=2  \
 	-s INVOKE_RUN=1 \
 	-s NO_EXIT_RUNTIME=1 \
 	-s EXPORTED_FUNCTIONS="['_main', '_mainloop']" \
 	-s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall', 'cwrap']" \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	--pre-js libatari800.js \
+	--preload-file /home/jjs/Atari/web.atr@/web.atr \
+	--preload-file /home/jjs/Atari/SystemRoms/BASIC_Rev_B.car@/basic.car \
 	wasm_test.c libatari800.a -o build/index.html
+
+	--preload-file /home/jjs/Atari/harddrive/DICE.COM@/dice.com \
 	
-    #--preload-file asm/bios.rom@/bios.rom \
 cd build && http-server

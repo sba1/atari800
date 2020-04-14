@@ -17,7 +17,7 @@ const int CANVAS_HEIGHT = GRAPHICS_HEIGHT;
 SDL_Window *window;
 SDL_Renderer *renderer;
 
-UBYTE ascii2scan(UBYTE code)
+int ascii2scan(int code)
 {
 
 	int keycode;
@@ -353,17 +353,26 @@ UBYTE ascii2scan(UBYTE code)
 	return keycode;
 }
 
+input_template_t input;
+
 void mainloop()
 {
 	static int frame = 0;
 	static int idx = 0;
 	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
+	static char msg[] = "abcdefghijklmnopqrstuvwxyz 1234567890 -=_+ [] | ,.<> '\" ;: !@#$%^&*()";
+
+	if (frame == 0)
+	{
+		printf("JJS VALUE IS %d\n", input.keychar);
+		printf("JJS VALUE IS %d\n", input.keycode);
+	}
 
 	frame++;
 
 	SDL_Event e;
-	input_template_t input;
 	input.keycode = AKEY_NONE;
+	input.keychar = 0;
 	input.shift = false;
 	input.control = false;
 
@@ -377,11 +386,32 @@ void mainloop()
 			// quit = true;
 		}
 
+		if (e.type == SDL_KEYDOWN && e.key.repeat == 0)
+		{
+
+			switch (e.key.keysym.sym)
+			{
+			case SDLK_RETURN:
+				input.keycode = AKEY_RETURN;
+				break;
+			case SDLK_LEFT:
+				input.keycode = AKEY_LEFT;
+				break;
+			case SDLK_RIGHT:
+				input.keycode = AKEY_RIGHT;
+				break;
+			case SDLK_UP:
+				input.keycode = AKEY_UP;
+				break;
+			case SDLK_DOWN:
+				input.keycode = AKEY_DOWN;
+				break;
+			}
+		}
+
 		if (e.type == SDL_TEXTINPUT)
 		{
 			UBYTE khar = (UBYTE)e.text.text[0];
-			// printf("Found: %d %c\n", khar, khar);
-			// input.keychar =
 			input.keycode = ascii2scan(khar);
 			input.shift = false;
 			input.control = false;
@@ -496,7 +526,10 @@ int main(int argc, char **argv)
 	char *test_args[] = {
 		"atari800",
 		"-atari",
-		"-basic",
+	// 	"-basic",
+		"-cart",
+		"basic.car",
+		"web.atr",
 	};
 	libatari800_init(sizeof(test_args) / sizeof(test_args[0]), test_args);
 
