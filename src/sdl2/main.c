@@ -55,6 +55,8 @@ SDL_Renderer *renderer;
 #include "../sound.h"
 #endif
 
+void get_render_size(SDL_Window *window, int *render_width, int *render_height);
+
 double PLATFORM_Time(void)
 {
 	return SDL_GetTicks() * 1e-3;
@@ -102,18 +104,41 @@ int PLATFORM_Exit(int run_monitor)
 	return FALSE;
 }
 
+/* Find the size of the window we can render into.
+ * 
+ * This scales to fit inside the SDL window and keep aspect ratio
+ *
+ *  */
+void get_render_size(SDL_Window *window, int *render_width, int *render_height)
+{
+	int window_width, window_height;
+	float canvasRatio;
+	float windowRatio;
+
+	SDL_GetWindowSize(window, &window_width, &window_height);
+
+	canvasRatio = (float)GRAPHICS_HEIGHT / (float)GRAPHICS_WIDTH;
+	windowRatio = (float)window_height / (float)window_width;
+
+	if (windowRatio < canvasRatio)
+	{
+		*render_height = window_height;
+		*render_width = *render_height / canvasRatio;
+	}
+	else
+	{
+		*render_width = window_width;
+		*render_height = *render_width * canvasRatio;
+	}
+}
+
 void PLATFORM_DisplayScreen(void)
 {
 	int x, y;
-	int window_width, window_height;
 	int render_width, render_height;
 	SDL_Event e;
 	SDL_Texture *texture;
-	int VIDEOMODE_src_offset_left = 0;
-	int VIDEOMODE_src_offset_top = 0;
 	UBYTE *screen;
-	float canvasRatio;
-	float windowRatio;
 	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
 	SDL_StartTextInput();
@@ -161,21 +186,7 @@ void PLATFORM_DisplayScreen(void)
 #endif
 	}
 
-	SDL_GetWindowSize(window, &window_width, &window_height);
-
-	canvasRatio = (float)GRAPHICS_HEIGHT / (float)GRAPHICS_WIDTH;
-	windowRatio = (float)window_height / (float)window_width;
-
-	if (windowRatio < canvasRatio)
-	{
-		render_height = window_height;
-		render_width = render_height / canvasRatio;
-	}
-	else
-	{
-		render_width = window_width;
-		render_height = render_width * canvasRatio;
-	}
+	get_render_size(window, &render_width, &render_height);
 
 	SDL_RenderClear(renderer);
 	texture = SDL_CreateTexture(
@@ -184,7 +195,7 @@ void PLATFORM_DisplayScreen(void)
 		SDL_TEXTUREACCESS_STREAMING,
 		GRAPHICS_WIDTH, GRAPHICS_HEIGHT);
 
-	screen = (UBYTE *)Screen_atari + Screen_WIDTH * VIDEOMODE_src_offset_top + VIDEOMODE_src_offset_left;
+	screen = (UBYTE *)Screen_atari + Screen_WIDTH;
 
 	screen += 384 * 24 + 24;
 	for (y = 0; y < GRAPHICS_HEIGHT; y++)
