@@ -32,3 +32,4 @@ autom4te.cache/
 .dirstamp
 stamp-*
 *~
+src/.vscode/
