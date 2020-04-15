@@ -41,6 +41,8 @@
 #include "ui.h" /* UI_alt_function */
 #include "videomode.h"
 
+#include "sdl2_input.h"
+
 #define GRAPHICS_WIDTH 336
 #define GRAPHICS_HEIGHT 192
 
@@ -50,6 +52,7 @@
 UBYTE quit = FALSE;
 SDL_Window *window;
 SDL_Renderer *renderer;
+int last_atari_scan_code = AKEY_NONE;
 
 #ifdef SOUND
 #include "../sound.h"
@@ -150,41 +153,17 @@ void PLATFORM_DisplayScreen(void)
 			quit = TRUE;
 		}
 
-		if (e.type == SDL_KEYDOWN && e.key.repeat == 0)
+		if (e.type == SDL_KEYDOWN)
 		{
-#if 0
-			switch (e.key.keysym.sym)
-			{
-			case SDLK_RETURN:
-				input.keycode = AKEY_RETURN;
-				break;
-			case SDLK_LEFT:
-				input.keycode = AKEY_LEFT;
-				break;
-			case SDLK_RIGHT:
-				input.keycode = AKEY_RIGHT;
-				break;
-			case SDLK_UP:
-				input.keycode = AKEY_UP;
-				break;
-			case SDLK_DOWN:
-				input.keycode = AKEY_DOWN;
-				break;
-			}
-#endif
+			last_atari_scan_code = sdl_keysum2scan(e.key.keysym.sym);
 		}
-
-#if 0
 
 		if (e.type == SDL_TEXTINPUT)
 		{
 			UBYTE khar = (UBYTE)e.text.text[0];
-			input.keycode = ascii2scan(khar);
-			input.shift = false;
-			input.control = false;
+			last_atari_scan_code = ascii2scan(khar);
 		}
-#endif
-	}
+	}	
 
 	get_render_size(window, &render_width, &render_height);
 
@@ -230,7 +209,9 @@ void PLATFORM_DisplayScreen(void)
 
 int PLATFORM_Keyboard(void)
 {
-	return AKEY_NONE;
+	int lc = last_atari_scan_code;
+	last_atari_scan_code = AKEY_NONE;
+	return lc;
 }
 
 int PLATFORM_PORT(int num)
@@ -248,7 +229,6 @@ int main(int argc, char **argv)
 	/* initialise Atari800 core */
 	if (!Atari800_Initialise(&argc, argv))
 	{
-		SDL_Quit();
 		Atari800_ErrExit();
 		return 3;
 	}
