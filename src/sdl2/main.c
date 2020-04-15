@@ -230,6 +230,7 @@ void PLATFORM_DisplayScreen(void)
 
 int PLATFORM_Keyboard(void)
 {
+	return AKEY_NONE;
 }
 
 int PLATFORM_PORT(int num)
@@ -256,4 +257,9 @@ int main(int argc, char **argv)
 		if (Atari800_display_screen)
 			PLATFORM_DisplayScreen();
 	}
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	return 0;
 }
