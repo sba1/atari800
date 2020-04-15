@@ -87,6 +87,13 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 		return FALSE;
 	}
 
+	if (TRUE)
+	{
+		SDL_RendererInfo rendererInfo;
+		SDL_GetRendererInfo(renderer, &rendererInfo);
+		printf("Screen intialized: Using driver: %s", rendererInfo.name);
+	}
+
 	return TRUE;
 }
 
