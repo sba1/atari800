@@ -247,7 +247,11 @@ int main(int argc, char **argv)
 {
 	/* initialise Atari800 core */
 	if (!Atari800_Initialise(&argc, argv))
+	{
+		SDL_Quit();
+		Atari800_ErrExit();
 		return 3;
+	}
 
 	/* main loop */
 	while (!quit)
