@@ -155,15 +155,23 @@ void PLATFORM_DisplayScreen(void)
 
 		if (e.type == SDL_KEYDOWN)
 		{
-			last_atari_scan_code = sdl_keysum2scan(e.key.keysym.sym);
+			last_atari_scan_code = sdl_keysum2scan_down(e.key.keysym.sym);
+			INPUT_key_code = last_atari_scan_code;
+		}
+
+		if (e.type == SDL_KEYUP)
+		{
+			last_atari_scan_code = sdl_keysum2scan_up(e.key.keysym.sym);
+			INPUT_key_code = last_atari_scan_code;
 		}
 
 		if (e.type == SDL_TEXTINPUT)
 		{
 			UBYTE khar = (UBYTE)e.text.text[0];
 			last_atari_scan_code = ascii2scan(khar);
+			INPUT_key_code = last_atari_scan_code;
 		}
-	}	
+	}
 
 	get_render_size(window, &render_width, &render_height);
 
@@ -236,7 +244,7 @@ int main(int argc, char **argv)
 	/* main loop */
 	while (!quit)
 	{
-		INPUT_key_code = PLATFORM_Keyboard();
+		/* INPUT_key_code = PLATFORM_Keyboard(); */
 		Atari800_Frame();
 		if (Atari800_display_screen)
 			PLATFORM_DisplayScreen();

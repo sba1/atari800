@@ -1,13 +1,71 @@
 #include "SDL_keyboard.h"
 #include "sdl2_input.h"
+#include "input.h"
 #include "akey.h"
 
-int sdl_keysum2scan(SDL_Keycode sym)
+#define FALSE 0
+#define TRUE (!FALSE)
+
+static Uint8 is_shift = 0;
+static Uint8 is_ctrl = 0;
+
+int sdl_keysum2scan_up(SDL_Keycode sym)
 {
     int keycode = AKEY_NONE;
     switch (sym)
     {
+    case SDLK_LSHIFT:
+    case SDLK_RSHIFT:
+        is_shift = FALSE;
+        break;
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+        is_ctrl = FALSE;
+        break;
+    case SDLK_F2:
+        INPUT_key_consol |= INPUT_CONSOL_OPTION;
+        break;
 
+    case SDLK_F3:
+        INPUT_key_consol |= INPUT_CONSOL_SELECT;
+        break;
+
+    case SDLK_F4:
+        INPUT_key_consol |= INPUT_CONSOL_START;
+        break;
+
+    default:
+        break;
+    }
+
+    printf("(up) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl);
+
+    return keycode;
+}
+
+int SHIFTED(int a) {
+    if (is_ctrl) {
+    return (a + (64 * is_shift) + (128 * is_ctrl));
+    }
+    return AKEY_NONE;
+}
+
+int sdl_keysum2scan_down(SDL_Keycode sym)
+{
+    int keycode = AKEY_NONE;
+
+    printf("(down) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl);
+
+    switch (sym)
+    {
+    case SDLK_LSHIFT:
+    case SDLK_RSHIFT:
+        is_shift = TRUE;
+        break;
+    case SDLK_LCTRL:
+    case SDLK_RCTRL:
+        is_ctrl = TRUE;
+        break;
     case SDLK_RETURN:
         keycode = AKEY_RETURN;
         break;
@@ -22,6 +80,108 @@ int sdl_keysum2scan(SDL_Keycode sym)
         break;
     case SDLK_DOWN:
         keycode = AKEY_DOWN;
+        break;
+
+    case SDLK_F2:
+        INPUT_key_consol &= ~INPUT_CONSOL_OPTION;
+        keycode = AKEY_OPTION;
+        break;
+
+    case SDLK_F3:
+        INPUT_key_consol &= ~INPUT_CONSOL_SELECT;
+        keycode = AKEY_SELECT;
+        break;
+
+    case SDLK_F4:
+        INPUT_key_consol &= ~INPUT_CONSOL_START;
+        keycode = AKEY_START;
+        break;
+
+    case SDLK_F5:
+        keycode = is_shift ? AKEY_COLDSTART : AKEY_WARMSTART;
+        break;
+
+    case SDLK_F7:
+        keycode = AKEY_BREAK;
+        break;
+
+    case SDLK_a:
+        keycode = SHIFTED(AKEY_a);
+        break;
+    case SDLK_b:
+        keycode = SHIFTED(AKEY_b);
+        break;
+    case SDLK_c:
+        keycode = SHIFTED(AKEY_c);
+        break;
+    case SDLK_d:
+        keycode = SHIFTED(AKEY_d);
+        break;
+    case SDLK_e:
+        keycode = SHIFTED(AKEY_e);
+        break;
+    case SDLK_f:
+        keycode = SHIFTED(AKEY_f);
+        break;
+    case SDLK_g:
+        keycode = SHIFTED(AKEY_g);
+        break;
+    case SDLK_h:
+        keycode = SHIFTED(AKEY_h);
+        break;
+    case SDLK_i:
+        keycode = SHIFTED(AKEY_i);
+        break;
+    case SDLK_j:
+        keycode = SHIFTED(AKEY_j);
+        break;
+    case SDLK_k:
+        keycode = SHIFTED(AKEY_k);
+        break;
+    case SDLK_l:
+        keycode = SHIFTED(AKEY_l);
+        break;
+    case SDLK_m:
+        keycode = SHIFTED(AKEY_m);
+        break;
+    case SDLK_n:
+        keycode = SHIFTED(AKEY_n);
+        break;
+    case SDLK_o:
+        keycode = SHIFTED(AKEY_o);
+        break;
+    case SDLK_p:
+        keycode = SHIFTED(AKEY_p);
+        break;
+    case SDLK_q:
+        keycode = SHIFTED(AKEY_q);
+        break;
+    case SDLK_r:
+        keycode = SHIFTED(AKEY_r);
+        break;
+    case SDLK_s:
+        keycode = SHIFTED(AKEY_s);
+        break;
+    case SDLK_t:
+        keycode = SHIFTED(AKEY_t);
+        break;
+    case SDLK_u:
+        keycode = SHIFTED(AKEY_u);
+        break;
+    case SDLK_v:
+        keycode = SHIFTED(AKEY_v);
+        break;
+    case SDLK_w:
+        keycode = SHIFTED(AKEY_w);
+        break;
+    case SDLK_x:
+        keycode = SHIFTED(AKEY_x);
+        break;
+    case SDLK_y:
+        keycode = SHIFTED(AKEY_y);
+        break;
+    case SDLK_z:
+        keycode = SHIFTED(AKEY_z);
         break;
     }
 
