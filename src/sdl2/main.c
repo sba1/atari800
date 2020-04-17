@@ -59,6 +59,7 @@ int last_atari_scan_code = AKEY_NONE;
 #endif
 
 void get_render_size(SDL_Window *window, int *render_width, int *render_height);
+void process_input(void);
 
 double PLATFORM_Time(void)
 {
@@ -135,14 +136,9 @@ void get_render_size(SDL_Window *window, int *render_width, int *render_height)
 	}
 }
 
-void PLATFORM_DisplayScreen(void)
+void process_input()
 {
-	int x, y;
-	int render_width, render_height;
 	SDL_Event e;
-	SDL_Texture *texture;
-	UBYTE *screen;
-	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
 	SDL_StartTextInput();
 
@@ -151,6 +147,7 @@ void PLATFORM_DisplayScreen(void)
 		if (e.type == SDL_QUIT)
 		{
 			quit = TRUE;
+			INPUT_key_code = AKEY_EXIT;
 		}
 
 		if (e.type == SDL_KEYDOWN)
@@ -172,6 +169,17 @@ void PLATFORM_DisplayScreen(void)
 			INPUT_key_code = last_atari_scan_code;
 		}
 	}
+}
+
+void PLATFORM_DisplayScreen(void)
+{
+	int x, y;
+	int render_width, render_height;
+	SDL_Texture *texture;
+	UBYTE *screen;
+	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
+
+	process_input();
 
 	get_render_size(window, &render_width, &render_height);
 
@@ -217,9 +225,8 @@ void PLATFORM_DisplayScreen(void)
 
 int PLATFORM_Keyboard(void)
 {
-	int lc = last_atari_scan_code;
-	last_atari_scan_code = AKEY_NONE;
-	return lc;
+	process_input();
+	return last_atari_scan_code;
 }
 
 int PLATFORM_PORT(int num)

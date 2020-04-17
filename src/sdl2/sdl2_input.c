@@ -2,12 +2,14 @@
 #include "sdl2_input.h"
 #include "input.h"
 #include "akey.h"
+#include "ui.h"
 
 #define FALSE 0
-#define TRUE (!FALSE)
 
 static Uint8 is_shift = 0;
 static Uint8 is_ctrl = 0;
+
+int SHIFTED(int a);
 
 int sdl_keysum2scan_up(SDL_Keycode sym)
 {
@@ -38,14 +40,16 @@ int sdl_keysum2scan_up(SDL_Keycode sym)
         break;
     }
 
-    printf("(up) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl);
+    /*printf("(up) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl); */
 
     return keycode;
 }
 
-int SHIFTED(int a) {
-    if (is_ctrl) {
-    return (a + (64 * is_shift) + (128 * is_ctrl));
+int SHIFTED(int a)
+{
+    if (is_ctrl)
+    {
+        return (a + (64 * is_shift) + (128 * is_ctrl));
     }
     return AKEY_NONE;
 }
@@ -54,7 +58,7 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
 {
     int keycode = AKEY_NONE;
 
-    printf("(down) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl);
+    printf("(down) UI: %d %d is_shift=%d  && is_ctrl=%d\n", UI_is_active, INPUT_key_consol, is_shift, is_ctrl);
 
     switch (sym)
     {
@@ -82,6 +86,10 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
         keycode = AKEY_DOWN;
         break;
 
+    case SDLK_F1:
+        keycode = AKEY_UI;
+        break;
+
     case SDLK_F2:
         INPUT_key_consol &= ~INPUT_CONSOL_OPTION;
         keycode = AKEY_OPTION;
@@ -101,8 +109,65 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
         keycode = is_shift ? AKEY_COLDSTART : AKEY_WARMSTART;
         break;
 
+    case SDLK_END:
+    case SDLK_F6:
+        keycode = AKEY_HELP;
+
     case SDLK_F7:
         keycode = AKEY_BREAK;
+        break;
+
+    case SDLK_F8:
+        UI_alt_function = UI_MENU_MONITOR;
+        break;
+
+    case SDLK_F9:
+        keycode = AKEY_EXIT;
+        break;
+
+    case SDLK_F10:
+        keycode = is_shift ? AKEY_SCREENSHOT_INTERLACE : AKEY_SCREENSHOT;
+        break;
+
+    case SDLK_F12:
+        keycode = AKEY_TURBO;
+        break;
+
+    case SDLK_PAGEDOWN:
+        keycode = AKEY_F2 | AKEY_SHFT;
+        break;
+
+    case SDLK_PAGEUP:
+        keycode = AKEY_F1 | AKEY_SHFT;
+        break;
+
+    case SDLK_HOME:
+        keycode = is_ctrl ? AKEY_LESS : AKEY_CLEAR;
+        break;
+
+    case SDLK_DELETE:
+        keycode = is_shift ? AKEY_DELETE_LINE : AKEY_DELETE_CHAR;
+        break;
+
+    case SDLK_INSERT:
+        keycode = is_shift ? AKEY_INSERT_LINE : AKEY_INSERT_CHAR;
+        break;
+
+    case SDLK_CAPSLOCK:
+        keycode = is_shift ? AKEY_CAPSTOGGLE : AKEY_CAPSTOGGLE;
+        break;
+
+        /* work-around for windows */
+    case SDLK_BACKSLASH:
+        keycode = AKEY_ESCAPE;
+        break;
+
+    case SDLK_TAB:
+        keycode = AKEY_TAB;
+        break;
+
+    case SDLK_BACKSPACE:
+        keycode = AKEY_BACKSPACE;
         break;
 
     case SDLK_a:
@@ -183,6 +248,17 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
     case SDLK_z:
         keycode = SHIFTED(AKEY_z);
         break;
+    case SDLK_ESCAPE:
+        keycode = AKEY_ESCAPE;
+        break;
+    case SDLK_BACKQUOTE:
+    /* Fallthrough */
+    case SDLK_LGUI:
+        keycode = AKEY_ATARI;
+        break;
+    case SDLK_RGUI:
+        keycode = is_shift ? AKEY_CAPSLOCK : AKEY_CAPSTOGGLE;
+        break;
     }
 
     return keycode;
@@ -195,101 +271,6 @@ int ascii2scan(int code)
 
     switch (code)
     {
-    case 0x01:
-        keycode = AKEY_CTRL_a;
-        break;
-    case 0x02:
-        keycode = AKEY_CTRL_b;
-        break;
-    case 0x03:
-        keycode = AKEY_CTRL_c;
-        break;
-    case 0x04:
-        keycode = AKEY_CTRL_d;
-        break;
-    case 0x05:
-        keycode = AKEY_CTRL_E;
-        break;
-    case 0x06:
-        keycode = AKEY_CTRL_F;
-        break;
-    case 0x07:
-        keycode = AKEY_CTRL_G;
-        break;
-
-    /*
-							case 0x08 :
-								keycode = AKEY_CTRL_H;
-								break;
-		*/
-    /* TAB - see case '\t' :
-							case 0x09 :
-								keycode = AKEY_CTRL_I;
-								break;
-		*/
-    case 0x0a:
-        keycode = AKEY_CTRL_J;
-        break;
-    case 0x0b:
-        keycode = AKEY_CTRL_K;
-        break;
-    case 0x0c:
-        keycode = AKEY_CTRL_L;
-        break;
-
-    /*
-							case 0x0d :
-								keycode = AKEY_CTRL_M;
-								break;
-		*/
-    case 0x0e:
-        keycode = AKEY_CTRL_N;
-        break;
-    case 0x0f:
-        keycode = AKEY_CTRL_O;
-        break;
-    case 0x10:
-        keycode = AKEY_CTRL_P;
-        break;
-    case 0x11:
-        keycode = AKEY_CTRL_Q;
-        break;
-    case 0x12:
-        keycode = AKEY_CTRL_R;
-        break;
-    case 0x13:
-        keycode = AKEY_CTRL_S;
-        break;
-    case 0x14:
-        keycode = AKEY_CTRL_T;
-        break;
-    case 0x15:
-        keycode = AKEY_CTRL_U;
-        break;
-    case 0x16:
-        keycode = AKEY_CTRL_V;
-        break;
-    case 0x17:
-        keycode = AKEY_CTRL_W;
-        break;
-    case 0x18:
-        keycode = AKEY_CTRL_X;
-        break;
-    case 0x19:
-        keycode = AKEY_CTRL_Y;
-        break;
-    case 0x1a:
-        keycode = AKEY_CTRL_Z;
-        break;
-    case 8:
-        keycode = AKEY_BACKSPACE;
-        break;
-    case 13:
-        keycode = AKEY_RETURN;
-        break;
-    case 0x1b:
-        keycode = AKEY_ESCAPE;
-        break;
     case '0':
         keycode = AKEY_0;
         break;
