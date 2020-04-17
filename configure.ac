@@ -696,7 +696,7 @@ if [[ "$a8_target" = default ]]; then
             AC_DEFINE(BIT3,1,[The Bit3 Full View 80 column card.])
             ;;
         sdl2)
-            AC_DEFINE(GUI_SDL2,1,[Use SDL for graphics and input.])
+            AC_DEFINE(GUI_SDL2,1,[Use SDL2 for graphics and input.])
             WANT_EVENT_RECORDING=no
             ;;
         dosvga)
