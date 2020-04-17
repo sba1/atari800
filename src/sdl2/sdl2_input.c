@@ -9,7 +9,7 @@
 static Uint8 is_shift = 0;
 static Uint8 is_ctrl = 0;
 
-int SHIFTED(int a);
+int control_shifted(int a);
 
 int sdl_keysum2scan_up(SDL_Keycode sym)
 {
@@ -40,12 +40,10 @@ int sdl_keysum2scan_up(SDL_Keycode sym)
         break;
     }
 
-    /*printf("(up) %d is_shift=%d  && is_ctrl=%d\n", INPUT_key_consol, is_shift, is_ctrl); */
-
     return keycode;
 }
 
-int SHIFTED(int a)
+int control_shifted(int a)
 {
     if (is_ctrl)
     {
@@ -57,8 +55,11 @@ int SHIFTED(int a)
 int sdl_keysum2scan_down(SDL_Keycode sym)
 {
     int keycode = AKEY_NONE;
-
-    printf("(down) UI: %d %d is_shift=%d  && is_ctrl=%d\n", UI_is_active, INPUT_key_consol, is_shift, is_ctrl);
+    int shiftctrl = 0;
+    if (is_shift)
+        shiftctrl ^= AKEY_SHFT;
+    if (is_ctrl)
+        shiftctrl ^= AKEY_CTRL;
 
     switch (sym)
     {
@@ -71,19 +72,19 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
         is_ctrl = TRUE;
         break;
     case SDLK_RETURN:
-        keycode = AKEY_RETURN;
+        keycode = AKEY_RETURN ^ shiftctrl;
         break;
     case SDLK_LEFT:
-        keycode = AKEY_LEFT;
+        keycode = (!UI_is_active && Atari800_f_keys ? AKEY_F3 : (is_shift ? AKEY_PLUS : AKEY_LEFT)) ^ shiftctrl;
         break;
     case SDLK_RIGHT:
-        keycode = AKEY_RIGHT;
+        keycode = (!UI_is_active && Atari800_f_keys ? AKEY_F4 : (is_shift ? AKEY_ASTERISK : AKEY_RIGHT)) ^ shiftctrl;
         break;
     case SDLK_UP:
-        keycode = AKEY_UP;
+        keycode = (!UI_is_active && Atari800_f_keys ? AKEY_F1 : (is_shift ? AKEY_MINUS : AKEY_UP)) ^ shiftctrl;
         break;
     case SDLK_DOWN:
-        keycode = AKEY_DOWN;
+        keycode = (!UI_is_active && Atari800_f_keys ? AKEY_F2 : (is_shift ? AKEY_EQUAL : AKEY_DOWN)) ^ shiftctrl;
         break;
 
     case SDLK_F1:
@@ -111,7 +112,7 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
 
     case SDLK_END:
     case SDLK_F6:
-        keycode = AKEY_HELP;
+        keycode = AKEY_HELP ^ shiftctrl;
 
     case SDLK_F7:
         keycode = AKEY_BREAK;
@@ -142,119 +143,119 @@ int sdl_keysum2scan_down(SDL_Keycode sym)
         break;
 
     case SDLK_HOME:
-        keycode = is_ctrl ? AKEY_LESS : AKEY_CLEAR;
+        keycode = is_ctrl ? AKEY_LESS | shiftctrl : AKEY_CLEAR;
         break;
 
     case SDLK_DELETE:
-        keycode = is_shift ? AKEY_DELETE_LINE : AKEY_DELETE_CHAR;
+        keycode = is_shift ? AKEY_DELETE_LINE | shiftctrl : AKEY_DELETE_CHAR;
         break;
 
     case SDLK_INSERT:
-        keycode = is_shift ? AKEY_INSERT_LINE : AKEY_INSERT_CHAR;
+        keycode = is_shift ? AKEY_INSERT_LINE | shiftctrl : AKEY_INSERT_CHAR;
         break;
 
     case SDLK_CAPSLOCK:
-        keycode = is_shift ? AKEY_CAPSTOGGLE : AKEY_CAPSTOGGLE;
+        keycode = is_shift ? AKEY_CAPSTOGGLE | shiftctrl : AKEY_CAPSTOGGLE | shiftctrl;
         break;
 
         /* work-around for windows */
     case SDLK_BACKSLASH:
-        keycode = AKEY_ESCAPE;
+        keycode = AKEY_ESCAPE | shiftctrl;
         break;
 
     case SDLK_TAB:
-        keycode = AKEY_TAB;
+        keycode = AKEY_TAB ^ shiftctrl;
         break;
 
     case SDLK_BACKSPACE:
-        keycode = AKEY_BACKSPACE;
+        keycode = AKEY_BACKSPACE | shiftctrl;
         break;
 
     case SDLK_a:
-        keycode = SHIFTED(AKEY_a);
+        keycode = control_shifted(AKEY_a);
         break;
     case SDLK_b:
-        keycode = SHIFTED(AKEY_b);
+        keycode = control_shifted(AKEY_b);
         break;
     case SDLK_c:
-        keycode = SHIFTED(AKEY_c);
+        keycode = control_shifted(AKEY_c);
         break;
     case SDLK_d:
-        keycode = SHIFTED(AKEY_d);
+        keycode = control_shifted(AKEY_d);
         break;
     case SDLK_e:
-        keycode = SHIFTED(AKEY_e);
+        keycode = control_shifted(AKEY_e);
         break;
     case SDLK_f:
-        keycode = SHIFTED(AKEY_f);
+        keycode = control_shifted(AKEY_f);
         break;
     case SDLK_g:
-        keycode = SHIFTED(AKEY_g);
+        keycode = control_shifted(AKEY_g);
         break;
     case SDLK_h:
-        keycode = SHIFTED(AKEY_h);
+        keycode = control_shifted(AKEY_h);
         break;
     case SDLK_i:
-        keycode = SHIFTED(AKEY_i);
+        keycode = control_shifted(AKEY_i);
         break;
     case SDLK_j:
-        keycode = SHIFTED(AKEY_j);
+        keycode = control_shifted(AKEY_j);
         break;
     case SDLK_k:
-        keycode = SHIFTED(AKEY_k);
+        keycode = control_shifted(AKEY_k);
         break;
     case SDLK_l:
-        keycode = SHIFTED(AKEY_l);
+        keycode = control_shifted(AKEY_l);
         break;
     case SDLK_m:
-        keycode = SHIFTED(AKEY_m);
+        keycode = control_shifted(AKEY_m);
         break;
     case SDLK_n:
-        keycode = SHIFTED(AKEY_n);
+        keycode = control_shifted(AKEY_n);
         break;
     case SDLK_o:
-        keycode = SHIFTED(AKEY_o);
+        keycode = control_shifted(AKEY_o);
         break;
     case SDLK_p:
-        keycode = SHIFTED(AKEY_p);
+        keycode = control_shifted(AKEY_p);
         break;
     case SDLK_q:
-        keycode = SHIFTED(AKEY_q);
+        keycode = control_shifted(AKEY_q);
         break;
     case SDLK_r:
-        keycode = SHIFTED(AKEY_r);
+        keycode = control_shifted(AKEY_r);
         break;
     case SDLK_s:
-        keycode = SHIFTED(AKEY_s);
+        keycode = control_shifted(AKEY_s);
         break;
     case SDLK_t:
-        keycode = SHIFTED(AKEY_t);
+        keycode = control_shifted(AKEY_t);
         break;
     case SDLK_u:
-        keycode = SHIFTED(AKEY_u);
+        keycode = control_shifted(AKEY_u);
         break;
     case SDLK_v:
-        keycode = SHIFTED(AKEY_v);
+        keycode = control_shifted(AKEY_v);
         break;
     case SDLK_w:
-        keycode = SHIFTED(AKEY_w);
+        keycode = control_shifted(AKEY_w);
         break;
     case SDLK_x:
-        keycode = SHIFTED(AKEY_x);
+        keycode = control_shifted(AKEY_x);
         break;
     case SDLK_y:
-        keycode = SHIFTED(AKEY_y);
+        keycode = control_shifted(AKEY_y);
         break;
     case SDLK_z:
-        keycode = SHIFTED(AKEY_z);
+        keycode = control_shifted(AKEY_z);
         break;
     case SDLK_ESCAPE:
-        keycode = AKEY_ESCAPE;
+        keycode = AKEY_ESCAPE | shiftctrl;
         break;
     case SDLK_BACKQUOTE:
     /* Fallthrough */
     case SDLK_LGUI:
-        keycode = AKEY_ATARI;
+        keycode = AKEY_ATARI ^ shiftctrl;
         break;
     case SDLK_RGUI:
         keycode = is_shift ? AKEY_CAPSLOCK : AKEY_CAPSTOGGLE;
@@ -268,6 +269,11 @@ int ascii2scan(int code)
 {
 
     int keycode;
+    int shiftctrl = 0;
+    if (is_shift)
+        shiftctrl ^= AKEY_SHFT;
+    if (is_ctrl)
+        shiftctrl ^= AKEY_CTRL;
 
     switch (code)
     {
@@ -406,7 +412,7 @@ int ascii2scan(int code)
         keycode = AKEY_z;
         break;
     case ' ':
-        keycode = AKEY_SPACE;
+        keycode = AKEY_SPACE ^ shiftctrl;
         break;
     case '\t':
         keycode = AKEY_TAB;
@@ -475,7 +481,7 @@ int ascii2scan(int code)
         keycode = AKEY_COMMA;
         break;
     case '.':
-        keycode = AKEY_FULLSTOP;
+        keycode = AKEY_FULLSTOP | shiftctrl;
         break;
     case '_':
         keycode = AKEY_UNDERSCORE;
