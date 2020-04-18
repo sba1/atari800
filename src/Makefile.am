@@ -176,7 +176,7 @@ atari800_SOURCES += pbi_proto80.c pbi_proto80.h af80.c af80.h bit3.c bit3.h
 endif
 
 if WITH_VIDEO_SDL2
-atari800_SOURCES += sdl2/main.c sdl2/sdl2_input.c sdl2_input.h
+atari800_SOURCES += sdl2/main.c sdl2/sdl2_input.c sdl2/sdl2_joystick.c
 endif
 
 if WITH_VIDEO_DOSVGA

@@ -40,8 +40,10 @@
 #include "platform.h"
 #include "ui.h" /* UI_alt_function */
 #include "videomode.h"
+#include "util.h"
 
 #include "sdl2_input.h"
+#include "sdl2_joystick.h"
 
 #define GRAPHICS_WIDTH 336
 #define GRAPHICS_HEIGHT 192
@@ -60,6 +62,64 @@ int last_atari_scan_code = AKEY_NONE;
 
 void get_render_size(SDL_Window *window, int *render_width, int *render_height);
 void process_input(void);
+void SDL2_VIDEO_WriteConfig(FILE *fp);
+
+int window_width = CANVAS_WIDTH;
+int window_height = CANVAS_HEIGHT;
+int window_x = 0;
+int window_y = 0;
+
+int PLATFORM_Configure(char *option, char *parameters)
+{
+	if (strcmp(option, "SDL2_WINDOW_WIDTH") == 0)
+	{
+		window_width = Util_sscandec(parameters);
+		return TRUE;
+	}
+
+	if (strcmp(option, "SDL2_WINDOW_HEIGHT") == 0)
+	{
+		window_height = Util_sscandec(parameters);
+		return TRUE;
+	}
+
+	if (strcmp(option, "SDL2_WINDOW_X") == 0)
+	{
+		window_x = Util_sscandec(parameters);
+		return TRUE;
+	}
+
+	if (strcmp(option, "SDL2_WINDOW_Y") == 0)
+	{
+		window_y = Util_sscandec(parameters);
+		return TRUE;
+	}
+
+	/*
+	return SDL_VIDEO_ReadConfig(option, parameters) ||
+	      SDL_INPUT_ReadConfig(option, parameters);
+    */
+	return FALSE;
+}
+void SDL2_VIDEO_WriteConfig(FILE *fp)
+{
+	SDL_GetWindowPosition(window, &window_x, &window_y);
+	SDL_GetWindowSize(window, &window_width, &window_height);
+	fprintf(fp, "SDL2_WINDOW_WIDTH=%d\n", window_width);
+	fprintf(fp, "SDL2_WINDOW_HEIGHT=%d\n", window_height);
+	fprintf(fp, "SDL2_WINDOW_X=%d\n", window_x);
+	fprintf(fp, "SDL2_WINDOW_Y=%d\n", window_y);
+}
+
+void PLATFORM_ConfigSave(FILE *fp)
+{
+	printf("*** PLATFORM_CONFIG_SAVE\n");
+	SDL2_VIDEO_WriteConfig(fp);
+	/*
+	 SDL2_VIDEO_WriteConfig(fp);
+	 SDL_INPUT_WriteConfig(fp);
+	 */
+}
 
 double PLATFORM_Time(void)
 {
@@ -68,7 +128,7 @@ double PLATFORM_Time(void)
 
 int PLATFORM_Initialise(int *argc, char *argv[])
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
 	{
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 		return FALSE;
@@ -78,6 +138,12 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 							  CANVAS_WIDTH, CANVAS_HEIGHT,
 							  SDL_WINDOW_RESIZABLE /* | SDL_WINDOW_OPENGL */ | SDL_WINDOW_SHOWN);
+
+	if (window_width >= CANVAS_WIDTH && window_height >= CANVAS_HEIGHT)
+	{
+		SDL_SetWindowSize(window, window_width, window_height);
+	}
+	SDL_SetWindowPosition(window, window_x, window_y);
 
 	renderer = SDL_CreateRenderer(window, -1, 0);
 
@@ -99,6 +165,8 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 		SDL_GetRendererInfo(renderer, &rendererInfo);
 		printf("Screen intialized: Using driver: %s", rendererInfo.name);
 	}
+
+	Init_SDL2_Joysticks(argc, argv);
 
 	return TRUE;
 }
@@ -260,5 +328,7 @@ int main(int argc, char **argv)
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+
+	Atari800_ErrExit();
 	return 0;
 }

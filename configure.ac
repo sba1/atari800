@@ -697,6 +697,8 @@ if [[ "$a8_target" = default ]]; then
             ;;
         sdl2)
             AC_DEFINE(GUI_SDL2,1,[Use SDL2 for graphics and input.])
+            AC_DEFINE(SUPPORTS_PLATFORM_CONFIGURE,1,[Additional config file options.])
+            AC_DEFINE(SUPPORTS_PLATFORM_CONFIGSAVE,1,[Save additional config file options.])
             WANT_EVENT_RECORDING=no
             ;;
         dosvga)
