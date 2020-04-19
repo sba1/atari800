@@ -1,5 +1,5 @@
 /*
- * atari_curses.c - Curses based port code
+ * sdl2/main.c- SDL2 graphics engine
  *
  * Copyright (c) 1995-1998 David Firth
  * Copyright (c) 1998-2014 Atari800 development team (see DOC/CREDITS)
@@ -73,6 +73,7 @@ static UBYTE last_stick[4] = {INPUT_STICK_CENTRE, INPUT_STICK_CENTRE, INPUT_STIC
 void get_render_size(SDL_Window *window, int *render_width, int *render_height);
 void process_input(void);
 void SDL2_VIDEO_WriteConfig(FILE *fp);
+int SDL2_VIDEO_Initialise(int *argc, char *argv[]);
 
 int window_width = CANVAS_WIDTH;
 int window_height = CANVAS_HEIGHT;
@@ -129,7 +130,7 @@ double PLATFORM_Time(void)
 	return SDL_GetTicks() * 1e-3;
 }
 
-int SDL2_VIDEO_Initialise(argc, argv)
+int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO
 #ifdef SOUND
@@ -173,6 +174,46 @@ int SDL2_VIDEO_Initialise(argc, argv)
 		SDL_GetRendererInfo(renderer, &rendererInfo);
 		printf("Screen intialized: Using driver: %s", rendererInfo.name);
 	}
+	return TRUE;
+}
+
+void PLATFORM_GetPixelFormat(PLATFORM_pixel_format_t *format)
+{
+	format->bpp = 32;
+
+	format->rmask = 0x00ff0000;
+	format->gmask = 0x0000ff00;
+	format->bmask = 0x000000ff;
+}
+
+void PLATFORM_MapRGB(void *dest, int const *palette, int size)
+{
+	int i;
+	SDL_Surface *surf;
+	SDL_PixelFormat *f;
+
+	surf = SDL_CreateRGBSurfaceWithFormat(0, 10, 10, 32, SDL_PIXELFORMAT_ARGB8888);
+	f = surf->format;
+
+	for (i = 0; i < size; ++i)
+	{
+		Uint32 c = SDL_MapRGB(
+			f,
+			(palette[i] & 0x00ff0000) >> 16,
+			(palette[i] & 0x0000ff00) >> 8,
+			(palette[i] & 0x000000ff));
+		switch (32)
+		{
+		case 16:
+			((UWORD *)dest)[i] = (UWORD)c;
+			break;
+		case 32:
+			((ULONG *)dest)[i] = (ULONG)c;
+			break;
+		}
+	}
+
+	SDL_FreeSurface(surf);
 }
 
 int PLATFORM_Initialise(int *argc, char *argv[])

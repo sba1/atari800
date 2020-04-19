@@ -699,6 +699,9 @@ if [[ "$a8_target" = default ]]; then
             AC_DEFINE(GUI_SDL2,1,[Use SDL2 for graphics and input.])
             AC_DEFINE(SUPPORTS_PLATFORM_CONFIGURE,1,[Additional config file options.])
             AC_DEFINE(SUPPORTS_PLATFORM_CONFIGSAVE,1,[Save additional config file options.])
+            AC_DEFINE(PLATFORM_MAP_PALETTE,1,[Platform-specific mapping of RGB palette to display surface.])
+            WANT_NTSC_FILTER=yes
+            WANT_PAL_BLENDING=yes
             WANT_EVENT_RECORDING=no
             ;;
         dosvga)
