@@ -100,6 +100,9 @@ endif
 if WITH_SOUND_SDL
 atari800_SOURCES += sound.c sound.h sdl/sound.c
 endif
+if WITH_SOUND_SDL2
+atari800_SOURCES += sound.c sound.h sdl2/sound.c
+endif
 if WITH_SOUND_FALCON
 atari800_SOURCES += sound.c falcon/sound.c
 endif
@@ -176,7 +179,7 @@ atari800_SOURCES += pbi_proto80.c pbi_proto80.h af80.c af80.h bit3.c bit3.h
 endif
 
 if WITH_VIDEO_SDL2
-atari800_SOURCES += sdl2/main.c sdl2/sdl2_input.c sdl2/sdl2_joystick.c
+atari800_SOURCES += sdl2/main.c sdl2/sdl2_input.h sdl2/sdl2_input.c sdl2/sdl2_joystick.h sdl2/sdl2_joystick.c
 endif
 
 if WITH_VIDEO_DOSVGA

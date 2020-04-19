@@ -22,9 +22,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "config.h"
 #include <SDL.h>
 
-#include "config.h"
 #include <string.h>
 
 #include "screen.h"
@@ -42,6 +42,9 @@
 #include "videomode.h"
 #include "util.h"
 #include "pokey.h"
+#ifdef SOUND
+#include "../sound.h"
+#endif
 
 #include "sdl2_input.h"
 #include "sdl2_joystick.h"
@@ -126,9 +129,14 @@ double PLATFORM_Time(void)
 	return SDL_GetTicks() * 1e-3;
 }
 
-int PLATFORM_Initialise(int *argc, char *argv[])
+int SDL2_VIDEO_Initialise(argc, argv)
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO
+#ifdef SOUND
+				 | SDL_INIT_AUDIO
+#endif
+
+				 | SDL_INIT_JOYSTICK) < 0)
 	{
 		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 		return FALSE;
@@ -165,8 +173,18 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 		SDL_GetRendererInfo(renderer, &rendererInfo);
 		printf("Screen intialized: Using driver: %s", rendererInfo.name);
 	}
+}
 
-	return Init_SDL2_Joysticks(argc, argv);
+int PLATFORM_Initialise(int *argc, char *argv[])
+{
+	if (!SDL2_VIDEO_Initialise(argc, argv)
+#ifdef SOUND
+		|| !Sound_Initialise(argc, argv)
+#endif
+		|| !Init_SDL2_Joysticks(argc, argv))
+		return FALSE;
+
+	return TRUE;
 }
 
 int PLATFORM_Exit(int run_monitor)
