@@ -6,4 +6,5 @@
 int ascii2scan(int code);
 int sdl_keysum2scan_up(SDL_Keycode sym);
 int sdl_keysum2scan_down(SDL_Keycode sym);
+
 #endif

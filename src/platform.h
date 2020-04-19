@@ -71,6 +71,13 @@ extern int PLATFORM_kbd_joy_1_enabled;
 int PLATFORM_GetRawKey(void);
 #endif /* GUI_SDL */
 
+#ifdef GUI_SDL2
+/* used in UI to show how the keyboard joystick is mapped */
+extern int PLATFORM_kbd_joy_0_enabled;
+extern int PLATFORM_kbd_joy_1_enabled;
+int PLATFORM_GetRawKey(void);
+#endif /* GUI_SDL */
+
 #ifdef DIRECTX
 int PLATFORM_GetKeyName(void);
 #endif

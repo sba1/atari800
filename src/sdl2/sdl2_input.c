@@ -1,3 +1,4 @@
+#include "input.h"
 #include "SDL_keyboard.h"
 #include "sdl2_input.h"
 #include "input.h"
@@ -5,6 +6,26 @@
 #include "ui.h"
 
 #define FALSE 0
+
+/* a runtime switch for the kbd_joy_X_enabled vars is in the UI */
+int PLATFORM_kbd_joy_0_enabled = TRUE;	/* enabled by default, doesn't hurt */
+int PLATFORM_kbd_joy_1_enabled = FALSE;	/* disabled, would steal normal keys */
+
+int PLATFORM_GetRawKey(void);
+
+int PLATFORM_GetRawKey(void)
+{
+	while(TRUE)
+	{
+		SDL_Event event;
+		if (SDL_PollEvent(&event)) {
+			switch (event.type) {
+			case SDL_KEYDOWN:
+				return event.key.keysym.sym;
+			}
+		}
+	}
+}
 
 static Uint8 is_shift = 0;
 static Uint8 is_ctrl = 0;

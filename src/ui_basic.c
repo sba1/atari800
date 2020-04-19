@@ -303,6 +303,17 @@ int GetRawKey(void)
 }
 #endif /* GUI_SDL */
 
+#ifdef GUI_SDL2
+int GetRawKey(void)
+{
+	ClearRectangle(0x94, 13, 11, 25, 13);
+	Box(0x9a, 0x94, 13, 11, 25, 13);
+	CenterPrint(0x94, 0x9a, "Press a key", 12);
+	PLATFORM_DisplayScreen();
+	return PLATFORM_GetRawKey();
+}
+#endif /* GUI_SDL */
+
 #ifdef DIRECTX
 int GetKeyName(void)
 {
