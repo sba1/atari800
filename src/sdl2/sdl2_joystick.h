@@ -6,7 +6,9 @@ typedef struct SDL_INPUT_RealJSConfig_t
     int use_hat;
 } SDL_INPUT_RealJSConfig_t;
 
-void Init_SDL2_Joysticks(int *argc, char *argv[]);
+int Init_SDL2_Joysticks(int *argc, char *argv[]);
 SDL_INPUT_RealJSConfig_t *SDL_INPUT_GetRealJSConfig(int joyIndex);
+int SDL2_INPUT_ReadConfig(char *option, char *parameters);
+void SDL2_INPUT_WriteConfig(FILE *fp);
 
 #endif

@@ -41,6 +41,7 @@
 #include "ui.h" /* UI_alt_function */
 #include "videomode.h"
 #include "util.h"
+#include "pokey.h"
 
 #include "sdl2_input.h"
 #include "sdl2_joystick.h"
@@ -51,10 +52,16 @@
 #define CANVAS_WIDTH GRAPHICS_WIDTH
 #define CANVAS_HEIGHT GRAPHICS_HEIGHT
 
+#define Atari_POT(x) 228
+
 UBYTE quit = FALSE;
 SDL_Window *window;
 SDL_Renderer *renderer;
 int last_atari_scan_code = AKEY_NONE;
+
+static UBYTE STICK[4];
+static UBYTE TRIG_input[4];
+static UBYTE last_stick[4] = {INPUT_STICK_CENTRE, INPUT_STICK_CENTRE, INPUT_STICK_CENTRE, INPUT_STICK_CENTRE};
 
 #ifdef SOUND
 #include "../sound.h"
@@ -95,12 +102,9 @@ int PLATFORM_Configure(char *option, char *parameters)
 		return TRUE;
 	}
 
-	/*
-	return SDL_VIDEO_ReadConfig(option, parameters) ||
-	      SDL_INPUT_ReadConfig(option, parameters);
-    */
-	return FALSE;
+	return SDL2_INPUT_ReadConfig(option, parameters);
 }
+
 void SDL2_VIDEO_WriteConfig(FILE *fp)
 {
 	SDL_GetWindowPosition(window, &window_x, &window_y);
@@ -113,12 +117,8 @@ void SDL2_VIDEO_WriteConfig(FILE *fp)
 
 void PLATFORM_ConfigSave(FILE *fp)
 {
-	printf("*** PLATFORM_CONFIG_SAVE\n");
 	SDL2_VIDEO_WriteConfig(fp);
-	/*
-	 SDL2_VIDEO_WriteConfig(fp);
-	 SDL_INPUT_WriteConfig(fp);
-	 */
+	SDL2_INPUT_WriteConfig(fp);
 }
 
 double PLATFORM_Time(void)
@@ -166,9 +166,7 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 		printf("Screen intialized: Using driver: %s", rendererInfo.name);
 	}
 
-	Init_SDL2_Joysticks(argc, argv);
-
-	return TRUE;
+	return Init_SDL2_Joysticks(argc, argv);
 }
 
 int PLATFORM_Exit(int run_monitor)
@@ -206,6 +204,7 @@ void get_render_size(SDL_Window *window, int *render_width, int *render_height)
 
 void process_input()
 {
+	int i;
 	SDL_Event e;
 
 	SDL_StartTextInput();
@@ -235,6 +234,143 @@ void process_input()
 			UBYTE khar = (UBYTE)e.text.text[0];
 			last_atari_scan_code = ascii2scan(khar);
 			INPUT_key_code = last_atari_scan_code;
+		}
+	}
+
+	/* handle joysticks */
+#ifdef EVENT_RECORDING
+	if (playingback)
+	{
+		gzgets(playbackfp, gzbuf, GZBUFSIZE);
+		sscanf(gzbuf, "%d ", &i);
+	}
+	else
+	{
+#endif
+		i = PLATFORM_PORT(0);
+#ifdef EVENT_RECORDING
+	}
+	if (recording)
+	{
+		gzprintf(recordfp, "%d \n", i);
+	}
+#endif
+
+	STICK[0] = i & 0x0f;
+	STICK[1] = (i >> 4) & 0x0f;
+#ifdef EVENT_RECORDING
+	if (playingback)
+	{
+		gzgets(playbackfp, gzbuf, GZBUFSIZE);
+		sscanf(gzbuf, "%d ", &i);
+	}
+	else
+	{
+#endif
+		i = PLATFORM_PORT(1);
+#ifdef EVENT_RECORDING
+	}
+	if (recording)
+	{
+		gzprintf(recordfp, "%d \n", i);
+	}
+#endif
+	STICK[2] = i & 0x0f;
+	STICK[3] = (i >> 4) & 0x0f;
+
+	for (i = 0; i < 4; i++)
+	{
+		if (INPUT_joy_block_opposite_directions)
+		{
+			if ((STICK[i] & 0x0c) == 0)
+			{							  /* right and left simultaneously */
+				if (last_stick[i] & 0x04) /* if wasn't left before, move left */
+					STICK[i] |= 0x08;
+				else /* else move right */
+					STICK[i] |= 0x04;
+			}
+			else
+			{
+				last_stick[i] &= 0x03;
+				last_stick[i] |= STICK[i] & 0x0c;
+			}
+			if ((STICK[i] & 0x03) == 0)
+			{							  /* up and down simultaneously */
+				if (last_stick[i] & 0x01) /* if wasn't up before, move up */
+					STICK[i] |= 0x02;
+				else /* else move down */
+					STICK[i] |= 0x01;
+			}
+			else
+			{
+				last_stick[i] &= 0x0c;
+				last_stick[i] |= STICK[i] & 0x03;
+			}
+		}
+		else
+			last_stick[i] = STICK[i];
+			/* Joystick Triggers */
+#ifdef EVENT_RECORDING
+		if (playingback)
+		{
+			int trigtemp;
+			gzgets(playbackfp, gzbuf, GZBUFSIZE);
+			sscanf(gzbuf, "%d ", &trigtemp);
+			TRIG_input[i] = trigtemp;
+		}
+		else
+		{
+#endif
+			TRIG_input[i] = PLATFORM_TRIG(i);
+#ifdef EVENT_RECORDING
+		}
+		if (recording)
+		{
+			gzprintf(recordfp, "%d \n", TRIG_input[i]);
+		}
+#endif
+		if ((INPUT_joy_autofire[i] == INPUT_AUTOFIRE_FIRE && !TRIG_input[i]) || (INPUT_joy_autofire[i] == INPUT_AUTOFIRE_CONT))
+			TRIG_input[i] = (Atari800_nframes & 2) ? 1 : 0;
+	}
+
+	/* handle analog joysticks in Atari 5200 */
+	if (Atari800_machine_type != Atari800_MACHINE_5200)
+	{
+		if (!INPUT_direct_mouse)
+		{
+			for (i = 0; i < 4; i++)
+				POKEY_POT_input[i] = Atari_POT(i);
+			if (Atari800_machine_type != Atari800_MACHINE_XLXE)
+			{
+				for (i = 4; i < 8; ++i)
+					POKEY_POT_input[i] = Atari_POT(i);
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < 4; i++)
+		{
+#ifdef DREAMCAST
+			/* first get analog js data */
+			POKEY_POT_input[2 * i] = Atari_POT(2 * i);		   /* x */
+			POKEY_POT_input[2 * i + 1] = Atari_POT(2 * i + 1); /* y */
+			if (POKEY_POT_input[2 * i] != INPUT_joy_5200_center || POKEY_POT_input[2 * i + 1] != INPUT_joy_5200_center)
+				continue;
+				/* if analog js is unused, alternatively try keypad */
+#endif
+			if ((STICK[i] & (INPUT_STICK_CENTRE ^ INPUT_STICK_LEFT)) == 0)
+				POKEY_POT_input[2 * i] = INPUT_joy_5200_min;
+			else if ((STICK[i] & (INPUT_STICK_CENTRE ^ INPUT_STICK_RIGHT)) == 0)
+				POKEY_POT_input[2 * i] = INPUT_joy_5200_max;
+			else
+				POKEY_POT_input[2 * i] = INPUT_joy_5200_center;
+			if ((STICK[i] & (INPUT_STICK_CENTRE ^ INPUT_STICK_FORWARD)) == 0)
+				POKEY_POT_input[2 * i + 1] = INPUT_joy_5200_min;
+			else if ((STICK[i] & (INPUT_STICK_CENTRE ^ INPUT_STICK_BACK)) == 0)
+				POKEY_POT_input[2 * i + 1] = INPUT_joy_5200_max;
+			else
+				POKEY_POT_input[2 * i + 1] = INPUT_joy_5200_center;
 		}
 	}
 }
@@ -295,16 +431,6 @@ int PLATFORM_Keyboard(void)
 {
 	process_input();
 	return last_atari_scan_code;
-}
-
-int PLATFORM_PORT(int num)
-{
-	return 0xff;
-}
-
-int PLATFORM_TRIG(int num)
-{
-	return 1;
 }
 
 int main(int argc, char **argv)
