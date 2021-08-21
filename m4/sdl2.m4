@@ -23,6 +23,8 @@ AC_ARG_WITH(sdl2-exec-prefix,[  --with-sdl2-exec-prefix=PFX Exec prefix where SD
 AC_ARG_ENABLE(sdl2test, [  --disable-sdl2test       Do not try to compile and run a test SDL2 program],
 		    , enable_sdl2test=yes)
 
+  min_sdl_version=ifelse([$1], ,2.0.0,$1)
+
   if test x$sdl2_exec_prefix != x ; then
     sdl2_config_args="$sdl2_config_args --exec-prefix=$sdl2_exec_prefix"
     if test x${SDL2_CONFIG+set} != xset ; then
@@ -108,19 +110,19 @@ int main (int argc, char *argv[])
      exit(1);
    }
 
-   if (($sdl_major_version > major) ||
-      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
-      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
+   if (($sdl2_major_version > major) ||
+      (($sdl2_major_version == major) && ($sdl2_minor_version > minor)) ||
+      (($sdl2_major_version == major) && ($sdl2_minor_version == minor) && ($sdl2_micro_version >= micro)))
     {
       return 0;
     }
   else
     {
-      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
-      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
+      printf("\n*** 'sdl2-config --version' returned %d.%d.%d, but the minimum version\n", $sdl2_major_version, $sdl2_minor_version, $sdl2_micro_version);
+      printf("*** of SDL2 required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
       printf("*** best to upgrade to the required version.\n");
-      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
-      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
+      printf("*** If sdl2-config was wrong, set the environment variable SDL2_CONFIG\n");
+      printf("*** to point to the correct copy of sdl2-config, and remove the file\n");
       printf("*** config.cache before re-running configure\n");
       return 1;
     }

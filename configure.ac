@@ -237,7 +237,7 @@ AC_DEFUN([TRY_USE_SDL2],
 [
     if [[ "$a8_use_sdl2" = no ]]; then
         dnl Check for SDL2
-        SDL2_VERSION=2.2.0
+        SDL2_VERSION=2.0.0
         AM_PATH_SDL2($SDL2_VERSION,
         [
             AC_DEFINE(SDL2,1,[Target: SDL2 library.])
