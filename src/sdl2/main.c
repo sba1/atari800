@@ -57,10 +57,10 @@
 
 #define Atari_POT(x) 228
 
-UBYTE quit = FALSE;
-SDL_Window *window;
-SDL_Renderer *renderer;
-int last_atari_scan_code = AKEY_NONE;
+static UBYTE quit = FALSE;
+static SDL_Window *window;
+static SDL_Renderer *renderer;
+static int last_atari_scan_code = AKEY_NONE;
 
 static UBYTE STICK[4];
 static UBYTE TRIG_input[4];
@@ -70,10 +70,10 @@ static UBYTE last_stick[4] = {INPUT_STICK_CENTRE, INPUT_STICK_CENTRE, INPUT_STIC
 #include "../sound.h"
 #endif
 
-void get_render_size(SDL_Window *window, int *render_width, int *render_height);
-void process_input(void);
-void SDL2_VIDEO_WriteConfig(FILE *fp);
-int SDL2_VIDEO_Initialise(int *argc, char *argv[]);
+static void get_render_size(SDL_Window *window, int *render_width, int *render_height);
+static void process_input(void);
+static void SDL2_VIDEO_WriteConfig(FILE *fp);
+static int SDL2_VIDEO_Initialise(int *argc, char *argv[]);
 
 int window_width = CANVAS_WIDTH;
 int window_height = CANVAS_HEIGHT;
@@ -109,7 +109,7 @@ int PLATFORM_Configure(char *option, char *parameters)
 	return SDL2_INPUT_ReadConfig(option, parameters);
 }
 
-void SDL2_VIDEO_WriteConfig(FILE *fp)
+static void SDL2_VIDEO_WriteConfig(FILE *fp)
 {
 	SDL_GetWindowPosition(window, &window_x, &window_y);
 	SDL_GetWindowSize(window, &window_width, &window_height);
@@ -130,7 +130,7 @@ double PLATFORM_Time(void)
 	return SDL_GetTicks() * 1e-3;
 }
 
-int SDL2_VIDEO_Initialise(int *argc, char *argv[])
+static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO
 #ifdef SOUND
@@ -238,7 +238,7 @@ int PLATFORM_Exit(int run_monitor)
  * This scales to fit inside the SDL window and keep aspect ratio
  *
  *  */
-void get_render_size(SDL_Window *window, int *render_width, int *render_height)
+static void get_render_size(SDL_Window *window, int *render_width, int *render_height)
 {
 	int window_width, window_height;
 	float canvasRatio;
@@ -261,7 +261,7 @@ void get_render_size(SDL_Window *window, int *render_width, int *render_height)
 	}
 }
 
-void process_input()
+static void process_input()
 {
 	int i;
 	SDL_Event e;
