@@ -145,7 +145,7 @@ static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 
 				 | SDL_INIT_JOYSTICK) < 0)
 	{
-		printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+		Log_print("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 		return FALSE;
 	}
 
@@ -164,13 +164,13 @@ static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 
 	if (window == NULL)
 	{
-		printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+		Log_print("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 		return FALSE;
 	}
 
 	if (renderer == NULL)
 	{
-		printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+		Log_print("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
 		return FALSE;
 	}
 
@@ -188,7 +188,7 @@ static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 	{
 		SDL_RendererInfo rendererInfo;
 		SDL_GetRendererInfo(renderer, &rendererInfo);
-		printf("Screen intialized: Using driver: %s", rendererInfo.name);
+		Log_print("Screen intialized: Using driver: %s", rendererInfo.name);
 	}
 	return TRUE;
 }
