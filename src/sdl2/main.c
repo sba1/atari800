@@ -143,7 +143,7 @@ static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 		return FALSE;
 	}
 
-	window = SDL_CreateWindow("SDL_ttf in SDL2",
+	window = SDL_CreateWindow("Atari800",
 							  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 							  CANVAS_WIDTH, CANVAS_HEIGHT,
 							  SDL_WINDOW_RESIZABLE /* | SDL_WINDOW_OPENGL */ | SDL_WINDOW_SHOWN);
