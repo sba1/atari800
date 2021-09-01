@@ -272,27 +272,43 @@ static void process_input()
 	{
 		if (e.type == SDL_QUIT)
 		{
-			quit = TRUE;
-			INPUT_key_code = AKEY_EXIT;
+			last_atari_scan_code = AKEY_EXIT;
 		}
 
 		if (e.type == SDL_KEYDOWN)
 		{
 			last_atari_scan_code = sdl_keysum2scan_down(e.key.keysym.sym);
-			INPUT_key_code = last_atari_scan_code;
 		}
 
 		if (e.type == SDL_KEYUP)
 		{
 			last_atari_scan_code = sdl_keysum2scan_up(e.key.keysym.sym);
-			INPUT_key_code = last_atari_scan_code;
 		}
 
 		if (e.type == SDL_TEXTINPUT)
 		{
 			UBYTE khar = (UBYTE)e.text.text[0];
 			last_atari_scan_code = ascii2scan(khar);
-			INPUT_key_code = last_atari_scan_code;
+		}
+
+		if (e.type == SDL_WINDOWEVENT)
+		{
+			switch (e.window.event)
+			{
+				case SDL_WINDOWEVENT_CLOSE:
+					last_atari_scan_code = AKEY_EXIT;
+					break;
+
+				case SDL_WINDOWEVENT_ENTER:
+				case SDL_WINDOWEVENT_LEAVE:
+				case SDL_WINDOWEVENT_FOCUS_GAINED:
+				case SDL_WINDOWEVENT_FOCUS_LOST:
+					break;
+
+				default:
+					PLATFORM_DisplayScreen();
+					break;
+			}
 		}
 	}
 
@@ -442,7 +458,6 @@ void PLATFORM_DisplayScreen(void)
 	UBYTE *screen;
 	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
-	process_input();
 
 	get_render_size(window, &render_width, &render_height);
 
@@ -504,7 +519,8 @@ int main(int argc, char **argv)
 	/* main loop */
 	while (!quit)
 	{
-		/* INPUT_key_code = PLATFORM_Keyboard(); */
+		INPUT_key_code = PLATFORM_Keyboard();
+
 		Atari800_Frame();
 		if (Atari800_display_screen)
 			PLATFORM_DisplayScreen();
