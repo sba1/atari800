@@ -60,6 +60,7 @@
 static UBYTE quit = FALSE;
 static SDL_Window *window;
 static SDL_Renderer *renderer;
+static SDL_Texture *texture;
 static int last_atari_scan_code = AKEY_NONE;
 
 static UBYTE STICK[4];
@@ -170,6 +171,16 @@ static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 	if (renderer == NULL)
 	{
 		printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+		return FALSE;
+	}
+
+	if (!(texture = SDL_CreateTexture(
+		renderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		GRAPHICS_WIDTH, GRAPHICS_HEIGHT)))
+	{
+		Log_print("Failed to create SDL texture");
 		return FALSE;
 	}
 
@@ -459,7 +470,6 @@ void PLATFORM_DisplayScreen(void)
 {
 	int x, y;
 	int render_width, render_height;
-	SDL_Texture *texture;
 	UBYTE *screen;
 	static unsigned char pixels[CANVAS_WIDTH * CANVAS_HEIGHT * 4];
 
@@ -467,11 +477,6 @@ void PLATFORM_DisplayScreen(void)
 	get_render_size(window, &render_width, &render_height);
 
 	SDL_RenderClear(renderer);
-	texture = SDL_CreateTexture(
-		renderer,
-		SDL_PIXELFORMAT_ARGB8888,
-		SDL_TEXTUREACCESS_STREAMING,
-		GRAPHICS_WIDTH, GRAPHICS_HEIGHT);
 
 	screen = (UBYTE *)Screen_atari + Screen_WIDTH;
 
@@ -531,6 +536,7 @@ int main(int argc, char **argv)
 			PLATFORM_DisplayScreen();
 	}
 
+	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
