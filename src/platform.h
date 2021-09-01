@@ -101,6 +101,10 @@ int PLATFORM_WindowMaximised(void);
 
 #endif /* SUPPORTS_CHANGE_VIDEOMODE */
 
+#if SUPPORTS_BASIC_FULLSCREEN
+void PLATFORM_SetFullscreen(int windowed);
+#endif
+
 #ifdef PLATFORM_MAP_PALETTE
 typedef struct PLATFORM_pixel_format_t {
 	int bpp; /* Current bits per pixel */

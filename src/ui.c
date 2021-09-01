@@ -2831,6 +2831,9 @@ static void DisplaySettings(void)
 #if SUPPORTS_CHANGE_VIDEOMODE
 		UI_MENU_SUBMENU(24, "Video mode settings"),
 #endif /* SUPPORTS_CHANGE_VIDEOMODE */
+#if SUPPORTS_BASIC_FULLSCREEN
+		UI_MENU_CHECK(33, "Fullscreen"),
+#endif
 #ifdef RPI
 		UI_MENU_CHECK(30, "Filtering:"),
 		{ UI_ITEM_ACTION, 31, NULL, "Zoom: ", op_zoom_string },
@@ -2879,6 +2882,8 @@ static void DisplaySettings(void)
 
 #if SUPPORTS_CHANGE_VIDEOMODE
 	int option = 24;
+#elif SUPPORTS_BASIC_FULLSCREEN
+	int option = 33;
 #elif RPI
 	int option = 30;
 #else /* RPI */
@@ -2945,6 +2950,16 @@ static void DisplaySettings(void)
 #if SUPPORTS_CHANGE_VIDEOMODE
 		case 24:
 			VideoModeSettings();
+			break;
+#endif
+#if SUPPORTS_BASIC_FULLSCREEN
+		case 33:
+			{
+				static int fullscreen;
+				fullscreen = !fullscreen;
+				PLATFORM_SetFullscreen(!fullscreen);
+				SetItemChecked(menu_array, 33, fullscreen);
+			}
 			break;
 #endif
 		case 0:

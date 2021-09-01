@@ -130,6 +130,11 @@ double PLATFORM_Time(void)
 	return SDL_GetTicks() * 1e-3;
 }
 
+void PLATFORM_SetFullscreen(int windowed)
+{
+	SDL_SetWindowFullscreen(window, windowed?0:SDL_WINDOW_FULLSCREEN_DESKTOP);
+}
+
 static int SDL2_VIDEO_Initialise(int *argc, char *argv[])
 {
 	if (SDL_Init(SDL_INIT_VIDEO
