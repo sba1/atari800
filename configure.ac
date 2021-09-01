@@ -959,19 +959,24 @@ elif [[ "$a8_target" != "ps2" -a "$a8_target" != "android" ]]; then
             fi
         fi
         if [[ "$with_sound" = check -o "$with_sound" = yes -o "$with_sound" = sdl ]]; then
-            TRY_USE_SDL()
-            if [[ "$a8_use_sdl" = yes ]]; then
-                with_sound=sdl
-            elif [[ "$with_sound" = sdl ]]; then
-                AC_MSG_FAILURE([--with-sound=sdl was given, but SDL library not found!])
+            if [[ "$with_video" != 'sdl2' ]]; then
+                TRY_USE_SDL()
+                if [[ "$a8_use_sdl" = yes ]]; then
+                    with_sound=sdl
+                elif [[ "$with_sound" = sdl ]]; then
+                    AC_MSG_FAILURE([--with-sound=sdl was given, but SDL library not found!])
+                fi
             fi
         fi
-        if [[ "$with_sound" = "$with_sound" = sdl2 ]]; then
-            TRY_USE_SDL2()
-            if [[ "$a8_use_sdl2" = yes ]]; then
-                with_sound=sdl2
-            elif [[ "$with_sound" = sdl2 ]]; then
-                AC_MSG_FAILURE([--with-sound=sdl2 was given, but SDL library not found!])
+
+        if [[ "$with_sound" = check -o "$with_sound" = yes -o "$with_sound" = sdl2 ]]; then
+            if [[ "$with_video" = 'sdl2' ]]; then
+                TRY_USE_SDL2()
+                if [[ "$a8_use_sdl2" = yes ]]; then
+                    with_sound=sdl2
+                elif [[ "$with_sound" = sdl2 ]]; then
+                    AC_MSG_FAILURE([--with-sound=sdl2 was given, but SDL2 library not found!])
+                fi
             fi
         fi
         if [[ "$with_sound" = check -o "$with_sound" = yes -o "$with_sound" = oss ]]; then
